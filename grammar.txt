@@ -2,23 +2,26 @@ grammar of C++
 <Program> ::= <PreprocessorDirective>* <Declaration>*
 
 <PreprocessorDirective> ::= "#include" <IncludeFile> | "#ifndef" <Identifier> "#define" <Identifier> "..." "#endif"
-<IncludeFile> ::= "<" <Identifier> ">" | "\"" <Identifier> "\""
+<IncludeFile> ::= "<" <FileName> ">" | "\"" <FileName> "\""
+<FileName> ::= [a-zA-Z_][a-zA-Z0-9_\.]*
+
 <Identifier> ::= [a-zA-Z_][a-zA-Z0-9_]*
 <Literal> ::= <IntegerLiteral> | <FloatLiteral> | <BooleanLiteral> | <StringLiteral>
 <IntegerLiteral> ::= [0-9]+
 <FloatLiteral> ::= [0-9]+ "." [0-9]+
-<BooleanLiteral> ::= "true" | "false"
+<BooleanLiteral> ::= "true" | "false" | "0" | "1" 
 <StringLiteral> ::= "\"" [^"\n]* "\""
 
-<Declaration> ::= <VariableDeclaration> | <FunctionDeclaration> | <ClassDeclaration> | <StructDeclaration> | <EnumDeclaration> | <TypedefDeclaration> | <NamespaceDeclaration>
+<Declaration> ::= <VariableDeclaration> | <FunctionDeclaration> | <ClassDeclaration> | <StructDeclaration> | <EnumDeclaration> | <TypedefDeclaration> | <NamespaceDeclaration> | <TemplateDeclaration>
 
 <VariableDeclaration> ::= <Type> <Identifier> ";" | <Type> <Identifier> "=" <Expression> ";"
-<FunctionDeclaration> ::= <Type> <Identifier> "(" <ParameterList>? ")" <FunctionBody>
+<FunctionDeclaration> ::= <Type> <Identifier> "(" <ParameterList>? ")" <FunctionBody>? | <Type> <Identifier> "(" <ParameterList>? ")" ";"
 <ClassDeclaration> ::= "class" <Identifier> "{" <ClassMember>* "}"
 <StructDeclaration> ::= "struct" <Identifier> "{" <StructMember>* "}"
 <EnumDeclaration> ::= "enum" <Identifier> "{" <EnumMember> ("," <EnumMember>)* "}"
 <TypedefDeclaration> ::= "typedef" <Type> <Identifier> ";"
 <NamespaceDeclaration> ::= "namespace" <Identifier> "{" <Declaration>* "}"
+<TemplateDeclaration> ::= "template" "<" <TemplateParameterList> ">" <Declaration>
 
 <ClassMember> ::= <VariableDeclaration> | <FunctionDeclaration> | <AccessSpecifier> ":" <ClassMember>*
 <StructMember> ::= <VariableDeclaration> | <FunctionDeclaration>
@@ -26,14 +29,18 @@ grammar of C++
 
 <AccessSpecifier> ::= "public" | "private" | "protected"
 
-<Type> ::= "int" | "float" | "char" | "bool" | "void" | <ClassType> | <PointerType> | <ReferenceType> | <ArrayType>
+<Type> ::= "int" | "float" | "char" | "bool" | "void" | <ClassType> | <PointerType> | <ReferenceType> | <ArrayType> | <TemplateType>
 <PointerType> ::= <Type> "*"
 <ReferenceType> ::= <Type> "&"
 <ArrayType> ::= <Type> "[" <IntegerLiteral> "]"
 <ClassType> ::= <Identifier>
+<TemplateType> ::= <Identifier> "<" <Type> ("," <Type>)* ">"
 
 <ParameterList> ::= <Parameter> ("," <Parameter>)*
 <Parameter> ::= <Type> <Identifier>
+
+<TemplateParameterList> ::= <TemplateParameter> ("," <TemplateParameter>)*
+<TemplateParameter> ::= "typename" <Identifier> | "class" <Identifier>
 
 <FunctionBody> ::= "{" <Statement>* "}"
 
@@ -51,8 +58,10 @@ grammar of C++
 <ContinueStatement> ::= "continue" ";"
 
 <Expression> ::= <PrimaryExpression> | <Expression> <Operator> <Expression> | <UnaryOperator> <Expression> | <Expression> <PostfixOperator>
-<PrimaryExpression> ::= <Identifier> | <Literal> | "(" <Expression> ")" | <FunctionCall>
+<PrimaryExpression> ::= <Identifier> | <Literal> | "(" <Expression> ")" | <FunctionCall> | <MemberAccess> | <PointerAccess>
 <FunctionCall> ::= <Identifier> "(" <ArgumentList>? ")"
+<MemberAccess> ::= <PrimaryExpression> "." <Identifier>
+<PointerAccess> ::= <PrimaryExpression> "->" <Identifier>
 <ArgumentList> ::= <Expression> ("," <Expression>)*
 <UnaryOperator> ::= "-" | "!" | "++" | "--"
 <PostfixOperator> ::= "++" | "--"
