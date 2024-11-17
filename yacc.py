@@ -1,6 +1,8 @@
 import ply.yacc as yacc
 from lex import tokens  # 假设词法分析部分已经定义并导出 tokens
 
+start = 'program'
+
 # 定义语法规则
 def p_program(p):
     '''program : preprocessor_directive_list declaration_list'''
@@ -28,7 +30,7 @@ def p_include_file(p):
     p[0] = p[2]
 
 def p_filename(p):
-    '''filename : IDENTIFIER'''
+    '''filename : FILENAME'''
     p[0] = p[1]
 
 def p_identifier(p):
@@ -291,7 +293,7 @@ def p_compound_statement(p):
     p[0] = p[2]
 
 def p_switch_statement(p):
-    '''switch_statement : SWITCH LPAREN expression RPAREN LBRACE switch_case_list RBRACE'''
+    '''switch_statement : SWITCH LPAREN expression RPAREN LBRACE switch_case_list default_case_opt RBRACE'''
     p[0] = ('switch', p[3], p[6])
 
 def p_switch_case_list(p):
@@ -303,13 +305,21 @@ def p_switch_case_list(p):
         p[0] = []
 
 def p_switch_case(p):
-    '''switch_case : CASE integer_literal COLON statement_list
-                   | DEFAULT COLON statement_list'''
+    '''switch_case : CASE literal COLON statement_list'''
     if len(p) == 5:
         p[0] = ('case', p[2], p[4])
     else:
         p[0] = ('default', p[3])
 
+def p_default_case_opt(p):
+    '''default_case_opt : default_case
+                        | empty'''
+    p[0] = p[1]
+
+def p_default_case(p):
+    '''default_case : DEFAULT COLON statement_list'''
+    p[0] = ('default', p[3])
+    
 def p_break_statement(p):
     '''break_statement : BREAK SEMICOLON'''
     p[0] = ('break',)

@@ -3,7 +3,7 @@ grammar of C++
 
 <PreprocessorDirective> ::= "#include" <IncludeFile> | "#ifndef" <Identifier> "#define" <Identifier> "..." "#endif"
 <IncludeFile> ::= "<" <FileName> ">" | "\"" <FileName> "\""
-<FileName> ::= [a-zA-Z_][a-zA-Z0-9_\.]*
+<FileName> ::= [a-zA-Z_][a-zA-Z0-9_\.]* 
 
 <Identifier> ::= [a-zA-Z_][a-zA-Z0-9_]*
 <Literal> ::= <IntegerLiteral> | <FloatLiteral> | <BooleanLiteral> | <StringLiteral>
@@ -52,8 +52,9 @@ grammar of C++
 <DoWhileStatement> ::= "do" <Statement> "while" "(" <Expression> ")" ";"
 <ReturnStatement> ::= "return" <Expression>? ";"
 <CompoundStatement> ::= "{" <Statement>* "}"
-<SwitchStatement> ::= "switch" "(" <Expression> ")" "{" <SwitchCase>* "}"
-<SwitchCase> ::= "case" <IntegerLiteral> ":" <Statement>* | "default" ":" <Statement>*
+<SwitchStatement> ::= "switch" "(" <Expression> ")" "{" <SwitchCase>* <DefaultCase>? "}"
+<SwitchCase> ::= "case" <Literal> ":" <Statement>* | "default" ":" <Statement>* 
+<DefaultCase> ::="default" ":" <Statement>* 
 <BreakStatement> ::= "break" ";"
 <ContinueStatement> ::= "continue" ";"
 
