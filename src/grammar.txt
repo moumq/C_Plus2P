@@ -5,7 +5,7 @@ grammar of C++
 <IncludeFile> ::= "<" <FileName> ">" | "\"" <FileName> "\""
 <FileName> ::= [a-zA-Z_][a-zA-Z0-9_\.]* 
 
-<Identifier> ::= [a-zA-Z_][a-zA-Z0-9_]*
+<Identifier> ::= [a-zA-Z_][a-zA-Z0-9_]* #!!special function name, e.g:~Vector()
 <Literal> ::= <IntegerLiteral> | <FloatLiteral> | <BooleanLiteral> | <StringLiteral>
 <IntegerLiteral> ::= [0-9]+
 <FloatLiteral> ::= [0-9]+ "." [0-9]+
@@ -14,16 +14,16 @@ grammar of C++
 
 <Declaration> ::= <VariableDeclaration> | <FunctionDeclaration> | <ClassDeclaration> | <StructDeclaration> | <EnumDeclaration> | <TypedefDeclaration> | <NamespaceDeclaration> | <TemplateDeclaration>
 
-<VariableDeclaration> ::= <Type> <Identifier> ";" | <Type> <Identifier> "=" <Expression> ";"
-<FunctionDeclaration> ::= <Type> <Identifier> "(" <ParameterList>? ")" <FunctionBody>? | <Type> <Identifier> "(" <ParameterList>? ")" ";"
-<ClassDeclaration> ::= "class" <Identifier> "{" <ClassMember>* "}"
+<VariableDeclaration> ::= <Type> <Identifier> ";" | <Type> <Identifier> "=" <Expression> ";" #?? multiple declaration. e.g:int a, b = 0, c;
+<FunctionDeclaration> ::= <Type> <Identifier> "(" <ParameterList>? ")" <FunctionBody>? | <Type> <Identifier> "(" <ParameterList>? ")" ";" #!! int main(){} matches <FunctionBody>, which lacks declaration and more.
+<ClassDeclaration> ::= "class" <Identifier> (<AccessSpecifier> ":" <Identifier>)? "{" <ClassMember>* "}" #changed: derive added; !! Multiple derive, e.g:class Derived : public Base1, public Base2{}; Also, declaring a class variable is different from declaraing a class template.This may apply to <StructiDeclaration> and others too.
 <StructDeclaration> ::= "struct" <Identifier> "{" <StructMember>* "}"
 <EnumDeclaration> ::= "enum" <Identifier> "{" <EnumMember> ("," <EnumMember>)* "}"
 <TypedefDeclaration> ::= "typedef" <Type> <Identifier> ";"
-<NamespaceDeclaration> ::= "namespace" <Identifier> "{" <Declaration>* "}"
+<NamespaceDeclaration> ::= "using" "namespace" <Identifier> "{" <Declaration>* "}" #changed
 <TemplateDeclaration> ::= "template" "<" <TemplateParameterList> ">" <Declaration>
 
-<ClassMember> ::= <VariableDeclaration> | <FunctionDeclaration> | <AccessSpecifier> ":" <ClassMember>*
+<ClassMember> ::= <VariableDeclaration> | <FunctionDeclaration> | <AccessSpecifier> ":" <ClassMember>* #!! Each AccessSpicifier may appear once at most.
 <StructMember> ::= <VariableDeclaration> | <FunctionDeclaration>
 <EnumMember> ::= <Identifier> ("=" <IntegerLiteral>)?
 
@@ -37,7 +37,7 @@ grammar of C++
 <TemplateType> ::= <Identifier> "<" <Type> ("," <Type>)* ">"
 
 <ParameterList> ::= <Parameter> ("," <Parameter>)*
-<Parameter> ::= <Type> <Identifier>
+<Parameter> ::= <Type> <Identifier> | <Type> <Identifier> "=" <Expression> #changed
 
 <TemplateParameterList> ::= <TemplateParameter> ("," <TemplateParameter>)*
 <TemplateParameter> ::= "typename" <Identifier> | "class" <Identifier>
@@ -61,10 +61,10 @@ grammar of C++
 <Expression> ::= <PrimaryExpression> | <Expression> <Operator> <Expression> | <UnaryOperator> <Expression> | <Expression> <PostfixOperator>
 <PrimaryExpression> ::= <Identifier> | <Literal> | "(" <Expression> ")" | <FunctionCall> | <MemberAccess> | <PointerAccess>
 <FunctionCall> ::= <Identifier> "(" <ArgumentList>? ")"
-<MemberAccess> ::= <PrimaryExpression> "." <Identifier>
-<PointerAccess> ::= <PrimaryExpression> "->" <Identifier>
+<MemberAccess> ::= <PrimaryExpression> "." <Identifier> ("(" <ArgumentList>? ")")?  #changed: () added, members may be functions
+<PointerAccess> ::= <PrimaryExpression> "->" <Identifier> ("(" <ArgumentList>? ")")? #changed: () added
 <ArgumentList> ::= <Expression> ("," <Expression>)*
-<UnaryOperator> ::= "-" | "!" | "++" | "--"
+<UnaryOperator> ::= "-" | "!" | "++" | "--" | "~" #changed: ~ added
 <PostfixOperator> ::= "++" | "--"
 
-<Operator> ::= "+" | "-" | "*" | "/" | "%" | "==" | "!=" | "<" | ">" | "<=" | ">=" | "&&" | "||" | "=" | "+=" | "-=" | "*=" | "/=" | "%="
+<Operator> ::= "+" | "-" | "*" | "/" | "%" | "==" | "!=" | "<" | ">" | "<=" | ">=" | "&&" | "||" | "&" | "|" | "^" | "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "<<" | ">>" #changed: & | ^ << >> added
