@@ -1,2 +1,6 @@
-# iTranslator-C2P
-Translator for converting C  to Python.
+# C2P
+
+使用方法：
+下载好ply库，保证环境可行
+直接运行part1.py根据提示继续运行，可对文件进行词法与语法分析
+直接运行part2.py根据提示继续运行，可将c转化为py文件
