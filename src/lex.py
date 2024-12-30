@@ -1,73 +1,76 @@
 import ply.lex as lex
 from ply.lex import TOKEN
+import sys
 
-tokens = (
-    'CONSTANT',
-    'STRING_LITERAL',
-    'IDENTIFIER',
-    'ELLIPSIS',
-    'RIGHT_ASSIGN',
-    'LEFT_ASSIGN',
-    'ADD_ASSIGN',
-    'SUB_ASSIGN',
-    'MUL_ASSIGN',
-    'DIV_ASSIGN',
-    'MOD_ASSIGN',
-    'AND_ASSIGN',
-    'XOR_ASSIGN',
-    'OR_ASSIGN',
-    'RIGHT_OP',
-    'LEFT_OP',
-    'INC_OP',
-    'DEC_OP',
-    'PTR_OP',
-    'AND_OP',
-    'OR_OP',
-    'LE_OP',
-    'GE_OP',
-    'EQ_OP',
-    'NE_OP',
-
-)
 
 reserved = {
-    'auto': 'AUTO',
-    'break': 'BREAK',
-    'bool': 'BOOL',
-    'case': 'CASE',
-    'char': 'CHAR',
-    'const': 'CONST',
-    'continue': 'CONTINUE',
-    'default': 'DEFAULT',
-    'do': 'DO',
-    'double': 'DOUBLE',
-    'else': 'ELSE',
-    'enum': 'ENUM',
-    'extern': 'EXTERN',
-    'float': 'FLOAT',
-    'for': 'FOR',
-    'goto': 'GOTO',
-    'if': 'IF',
-    'inline': 'INLINE',
-    'int': 'INT',
-    'long': 'LONG',
-    'register': 'REGISTER',
-    'restrict': 'RESTRICT',
-    'return': 'RETURN',
-    'short': 'SHORT',
-    'signed': 'SIGNED',
-    'sizeof': 'SIZEOF',
-    'static': 'STATIC',
-    'struct': 'STRUCT',
     'switch': 'SWITCH',
+    'restrict': 'RESTRICT',
+    'sizeof': 'SIZEOF',
     'typedef': 'TYPEDEF',
     'union': 'UNION',
-    'unsigned': 'UNSIGNED',
-    'void': 'VOID',
+    'break': 'BREAK',
+    'return': 'RETURN',
+    'goto': 'GOTO',
+    'enum': 'ENUM',
+    'char': 'CHAR',
     'volatile': 'VOLATILE',
+    'unsigned': 'UNSIGNED',
+    'extern': 'EXTERN',
     'while': 'WHILE',
+    'case': 'CASE',
+    'short': 'SHORT',
+    'inline': 'INLINE',
+    'float': 'FLOAT',
+    'for': 'FOR',
+    'signed': 'SIGNED',
+    'default': 'DEFAULT',
+    'register': 'REGISTER',
+    'long': 'LONG',
+    'static': 'STATIC',
+    'void': 'VOID',
+    'auto': 'AUTO',
+    'bool': 'BOOL',
+    'continue': 'CONTINUE',
+    'int': 'INT',
+    'do': 'DO',
+    'else': 'ELSE',
+    'double': 'DOUBLE',
+    'struct': 'STRUCT',
+    'if': 'IF',
+    'const': 'CONST',
 }
-tokens = tokens + tuple(reserved.values())
+
+
+tokens = (
+    'PTR_OP',
+    'LEFT_OP',
+    'ADD_ASSIGN',
+    'SUB_ASSIGN',
+    'RIGHT_OP',
+    'DIV_ASSIGN',
+    'MOD_ASSIGN',
+    'ELLIPSIS',
+    'IDENTIFIER',
+    'EQ_OP',
+    'DEC_OP',
+    'MUL_ASSIGN',
+    'NE_OP',
+    'AND_ASSIGN',
+    'OR_OP',
+    'GE_OP',
+    'LE_OP',
+    'STRING_LITERAL',
+    'INC_OP',
+    'XOR_ASSIGN',
+    'OR_ASSIGN',
+    'CONSTANT',
+    'RIGHT_ASSIGN',
+    'LEFT_ASSIGN',
+    'AND_OP',
+)
+
+
 
 literals = ';,:=.&![]{}~()+-*/%><^|?'
 
@@ -94,7 +97,6 @@ t_GE_OP = r'>='
 t_EQ_OP = r'=='
 t_NE_OP = r'!='
 
-
 # 数字 - 十进制
 D = r'[0-9]'
 # 数字 - 十六进制
@@ -107,7 +109,6 @@ E = r'[Ee][+-]?[0-9]+'
 FS = r'(f|F|l|L)'
 # 整型数修饰符
 IS = r'(u|U|l|L)*'
-
 
 # 标识符
 identifier = r'(%s(%s|%s)*)' % (L, D, L)
@@ -125,8 +126,20 @@ constant = r'(%s|%s|%s|%s)' % (decimal, integer, char, boolean)
 string_literal = r'"(\\.|[^\\"])*"'
 
 
+# 错误处理
+def t_error(t):
+    print("Illegal character '%s'" % t.value[0])
+    t.lexer.skip(1)
+
 @TOKEN(constant)
 def t_CONSTANT(t):
+    return t
+
+# 空白字符定义
+t_ignore = ' \t\v\f'
+
+@TOKEN(string_literal)
+def t_STRING_LITERAL(t):
     return t
 
 @TOKEN(identifier)
@@ -134,11 +147,10 @@ def t_IDENTIFIER(t):
     t.type = reserved.get(t.value, 'IDENTIFIER')
     return t
 
-
-@TOKEN(string_literal)
-def t_STRING_LITERAL(t):
-    return t
-
+# 注释过滤
+def t_COMMENT(t):
+    r'//[^\n]*'
+    pass
 
 # 行号追踪
 def t_newline(t):
@@ -146,49 +158,39 @@ def t_newline(t):
     t.lexer.lineno += len(t.value)
 
 
-# 空白字符定义
-t_ignore = ' \t\v\f'
-
-
-# 注释过滤
-def t_COMMENT(t):
-    r'//[^\n]*'
-    pass
-
-
-# 错误处理
-def t_error(t):
-    print("Illegal character '%s'" % t.value[0])
-    t.lexer.skip(1)
-
-
-# Compute column.
-#     string is the input text string
-#     token is a token instance
-def find_column(string, token):
-    last_cr = string.rfind('\n', 0, token.lexpos)
-    if last_cr < 0:
-        last_cr = 0
-    column = (token.lexpos - last_cr) + 1
-    return column
-
-
+tokens += tuple(reserved.values())
 # 构建词法分析器
 lexer = lex.lex()
 
+def calculate_position(source_text, token):
+    """
+    Calculate the position of a token within its line in the source text.
+    """
+    last_line_break = source_text.rfind('\n', 0, token.lexpos)
+    position = token.lexpos - (last_line_break + 1) + 1
+    return position
 
-# 测试程序
+
+def analyze_file(file_path):
+    """
+    Analyze the content of a file, tokenize it, and display tokens with their positions.
+    """
+    try:
+        with open(file_path, 'r') as file:
+            file_content = file.read()
+            lex.input(file_content)
+            while (current_token := lexer.token()) is not None:
+                print(current_token, calculate_position(file_content, current_token))
+    except FileNotFoundError:
+        print(f"Error: Unable to locate the file '{file_path}'.")
+    except Exception as err:
+        print(f"An unexpected error occurred: {err}")
+
+
 if __name__ == '__main__':
-    while True:
-        try:
-            filepath = input('lex > ')
-            with open(filepath, 'r') as file:
-                data = file.read()
-                lex.input(data)
-            while True:
-                tok = lexer.token()
-                if not tok:
-                    break
-                print(tok, find_column(data, tok))
-        except EOFError:
-            break
+    if len(sys.argv) != 2:
+        print("Usage: python lex.py <file_path>")
+        sys.exit(1)
+
+    file_path = sys.argv[1]
+    analyze_file(file_path)

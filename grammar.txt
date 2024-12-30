@@ -1,0 +1,301 @@
+program ::= ext_decl
+          | program ext_decl
+
+ext_decl ::= func_def
+           | decl
+
+decl ::= decl_specs ';'
+       | decl_specs init_decl_list ';'
+
+init_decl_list ::= init_decl
+                 | init_decl_list ',' init_decl
+
+init_decl ::= declr
+            | declr '=' init
+
+decl_specs ::= stor_class_spec
+             | stor_class_spec decl_specs
+             | type_spec
+             | type_spec decl_specs
+             | type_qual
+             | type_qual decl_specs
+             | func_spec
+             | func_spec decl_specs
+
+stor_class_spec ::= TYPEDEF
+                  | EXTERN
+                  | STATIC
+                  | AUTO
+                  | REGISTER
+
+func_spec ::= INLINE
+
+type_spec ::= VOID
+            | CHAR
+            | SHORT
+            | INT
+            | LONG
+            | FLOAT
+            | DOUBLE
+            | SIGNED
+            | UNSIGNED
+            | BOOL
+            | struct_union_spec
+            | enum_spec
+
+type_qual ::= CONST
+            | RESTRICT
+            | VOLATILE
+
+enum_spec ::= ENUM '{' enum_list '}'
+            | ENUM IDENT '{' enum_list '}'
+            | ENUM '{' enum_list ',' '}'
+            | ENUM IDENT '{' enum_list ',' '}'
+            | ENUM IDENT
+
+enum_list ::= enum
+            | enum_list ',' enum
+
+enum ::= IDENT
+       | IDENT '=' const_expr
+
+struct_union_spec ::= struct_union IDENT '{' struct_decl_list '}'
+                    | struct_union '{' struct_decl_list '}'
+                    | struct_union IDENT
+
+struct_union ::= STRUCT
+               | UNION
+
+struct_decl_list ::= struct_decl
+                   | struct_decl_list struct_decl
+
+struct_decl ::= spec_qual_list struct_declr_list ';'
+
+spec_qual_list ::= type_spec spec_qual_list
+                 | type_spec
+                 | type_qual spec_qual_list
+                 | type_qual
+
+struct_declr_list ::= struct_declr
+                    | struct_declr_list ',' struct_declr
+
+struct_declr ::= declr
+               | ':' const_expr
+               | declr ':' const_expr
+
+declr ::= ptr direct_declr
+       | direct_declr
+
+ptr ::= '*'
+      | '*' type_qual_list
+      | '*' ptr
+      | '*' type_qual_list ptr
+
+type_qual_list ::= type_qual
+                 | type_qual_list type_qual
+
+direct_declr ::= IDENT
+               | '(' declr ')'
+               | direct_declr '[' type_qual_list assign_expr ']'
+               | direct_declr '[' type_qual_list ']'
+               | direct_declr '[' assign_expr ']'
+               | direct_declr '[' STATIC type_qual_list assign_expr ']'
+               | direct_declr '[' type_qual_list STATIC assign_expr ']'
+               | direct_declr '[' type_qual_list '*' ']'
+               | direct_declr '[' '*' ']'
+               | direct_declr '[' ']'
+               | direct_declr '(' param_type_list ')'
+               | direct_declr '(' ident_list ')'
+               | direct_declr '(' ')'
+
+ident_list ::= IDENT
+             | ident_list ',' IDENT
+
+assign_expr ::= cond_expr
+              | unary_expr assign_op assign_expr
+
+assign_op ::= '='
+            | MUL_ASSIGN
+            | DIV_ASSIGN
+            | MOD_ASSIGN
+            | ADD_ASSIGN
+            | SUB_ASSIGN
+            | LEFT_ASSIGN
+            | RIGHT_ASSIGN
+            | AND_ASSIGN
+            | XOR_ASSIGN
+            | OR_ASSIGN
+
+const_expr ::= cond_expr
+
+cond_expr ::= log_or_expr
+            | log_or_expr '?' expr ':' cond_expr
+
+log_or_expr ::= log_and_expr
+              | log_or_expr OR_OP log_and_expr
+
+log_and_expr ::= incl_or_expr
+               | log_and_expr AND_OP incl_or_expr
+
+incl_or_expr ::= excl_or_expr
+               | incl_or_expr '|' excl_or_expr
+
+excl_or_expr ::= and_expr
+               | excl_or_expr '^' and_expr
+
+and_expr ::= eq_expr
+           | and_expr '&' eq_expr
+
+eq_expr ::= rel_expr
+          | eq_expr EQ_OP rel_expr
+          | eq_expr NE_OP rel_expr
+
+rel_expr ::= shift_expr
+           | rel_expr '<' shift_expr
+           | rel_expr '>' shift_expr
+           | rel_expr LE_OP shift_expr
+           | rel_expr GE_OP shift_expr
+
+shift_expr ::= add_expr
+             | shift_expr LEFT_OP add_expr
+             | shift_expr RIGHT_OP add_expr
+
+add_expr ::= mult_expr
+           | add_expr '+' mult_expr
+           | add_expr '-' mult_expr
+
+mult_expr ::= cast_expr
+            | mult_expr '*' cast_expr
+            | mult_expr '/' cast_expr
+            | mult_expr '%' cast_expr
+
+cast_expr ::= unary_expr
+            | '(' type_name ')' cast_expr
+
+unary_expr ::= post_expr
+             | INC_OP unary_expr
+             | DEC_OP unary_expr
+             | unary_op cast_expr
+             | SIZEOF unary_expr
+             | SIZEOF '(' type_name ')'
+
+unary_op ::= '&'
+           | '*'
+           | '+'
+           | '-'
+           | '~'
+           | '!'
+
+post_expr ::= prim_expr
+            | post_expr '[' expr ']'
+            | post_expr '(' ')'
+            | post_expr '(' arg_expr_list ')'
+            | post_expr '.' IDENT
+            | post_expr PTR_OP IDENT
+            | post_expr INC_OP
+            | post_expr DEC_OP
+            | '(' type_name ')' '{' init_list '}'
+            | '(' type_name ')' '{' init_list ',' '}'
+
+prim_expr ::= IDENT
+            | CONSTANT
+            | STRING_LITERAL
+            | '(' expr ')'
+
+expr ::= assign_expr
+       | expr ',' assign_expr
+
+type_name ::= spec_qual_list
+            | spec_qual_list abs_declr
+
+abs_declr ::= ptr
+            | direct_abs_declr
+            | ptr direct_abs_declr
+
+direct_abs_declr ::= '(' abs_declr ')'
+                   | '[' ']'
+                   | '[' assign_expr ']'
+                   | direct_abs_declr '[' ']'
+                   | direct_abs_declr '[' assign_expr ']'
+                   | '[' '*' ']'
+                   | direct_abs_declr '[' '*' ']'
+                   | '(' ')'
+                   | '(' param_type_list ')'
+                   | direct_abs_declr '(' ')'
+                   | direct_abs_declr '(' param_type_list ')'
+
+param_type_list ::= param_list
+                  | param_list ',' ELLIPSIS
+
+param_list ::= param_decl
+             | param_list ',' param_decl
+
+param_decl ::= decl_specs declr
+             | decl_specs abs_declr
+             | decl_specs
+
+arg_expr_list ::= assign_expr
+                | arg_expr_list ',' assign_expr
+
+init_list ::= init
+            | design init
+            | init_list ',' init
+            | init_list ',' design init
+
+init ::= assign_expr
+       | '{' init_list '}'
+       | '{' init_list ',' '}'
+
+design ::= design_list '='
+
+design_list ::= design
+              | design_list design
+
+design ::= '[' const_expr ']'
+         | '.' IDENT
+
+func_def ::= decl_specs declr decl_list comp_stmt
+           | decl_specs declr comp_stmt
+
+decl_list ::= decl
+            | decl_list decl
+
+comp_stmt ::= '{' '}'
+            | '{' block_item_list '}'
+
+block_item_list ::= block_item
+                  | block_item_list block_item
+
+block_item ::= decl
+             | stmt
+
+stmt ::= labeled_stmt
+       | comp_stmt
+       | expr_stmt
+       | sel_stmt
+       | iter_stmt
+       | jump_stmt
+
+labeled_stmt ::= IDENT ':' stmt
+               | CASE const_expr ':' stmt
+               | DEFAULT ':' stmt
+
+expr_stmt ::= ';'
+            | expr ';'
+
+sel_stmt ::= IF '(' expr ')' stmt ELSE stmt
+           | IF '(' expr ')' stmt
+           | SWITCH '(' expr ')' stmt
+
+iter_stmt ::= WHILE '(' expr ')' stmt
+            | DO stmt WHILE '(' expr ')' ';'
+            | FOR '(' expr_stmt expr_stmt ')' stmt
+            | FOR '(' expr_stmt expr_stmt expr ')' stmt
+            | FOR '(' decl expr_stmt ')' stmt
+            | FOR '(' decl expr_stmt expr ')' stmt
+
+jump_stmt ::= GOTO IDENT ';'
+            | CONTINUE ';'
+            | BREAK ';'
+            | RETURN ';'
+            | RETURN expr ';'
